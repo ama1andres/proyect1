@@ -1,4 +1,8 @@
 #primer proyecto andres
+
+import csv
+import os
+
 def menu_user():
     students = []
     
@@ -21,7 +25,6 @@ def menu_user():
 
         option = input("Select an option from [1-7]: ")
 
-
         if option == '1':
             students = enter_students(n)
         elif option == '2':
@@ -33,14 +36,12 @@ def menu_user():
         elif option == '5':
             export_csv(students)
         elif option == '6':
-            print
-            #investigar como
+            students = import_csv()
         elif option == '7':
             print("Exit the program")
             break
         else:
-            print("invalid option, select an option from the menu [1-7]")
-
+            print("Invalid option, select an option from the menu [1-7]")
 
 def validate_grade(grade):
     while True:
@@ -48,20 +49,19 @@ def validate_grade(grade):
             value = float(grade)
             if 0 <= value <= 100:
                 return value
-            
             else:
                 print("The grade must be between 0 and 100 ")
-                grade = int(input("Enter the grade again: "))
+                grade = float(input("Enter the grade again: "))
         except ValueError:
-            print("Invalid input enter a grade between 0 and 100")
-            grade = int(input("Enter the grade again 'number': "))
+            print("Invalid input, enter a grade between 0 and 100")
+            grade = float(input("Enter the grade again 'number': "))
 
 def enter_students(n):
     students = []
     for repetition in range(n):
-        print(f"\n information for student {repetition+1}:")
+        print(f"\nInformation for student {repetition+1}:")
         name = input("Full name: ")
-        section = input("Section ej 11b: ")
+        section = input("Section (e.g., 11b): ")
         spanish_grade = validate_grade(input("Spanish grade: "))
         english_grade = validate_grade(input("English grade: "))
         social_studies_grade = validate_grade(input("Social studies grade: "))
@@ -80,36 +80,95 @@ def enter_students(n):
         students.append(student)
     return students
 
-
 def show_students(students):
-    print("\nInformation all students: ")
-
+    print("\nInformation of students: ")
     for index, student in enumerate(students, start=1):
-
         print(f"\nStudent {index}:")
         print(f"Name: {student['name']}")
         print(f"Section: {student['section']}")
-        print("Grades:")
-        
+        print("Grades: ")
         for subject, grade in student['grades'].items():
-
             print(f"  {subject}: {grade}")
 
+def view_top_3(students):
+    if len(students) < 3:
+        print("There are fewer than 3 students")
+        return
 
-def view_top_3 (students):
-    print()
+    student_averages = []
+    for student in students:
+        grades = student['grades'].values()
+        average = sum(grades) / len(grades)
+        student_averages.append((student, average))
 
+    for i in range(len(student_averages)):
+        for j in range(i + 1, len(student_averages)):
+            if student_averages[i][1] < student_averages[j][1]:
+                student_averages[i], student_averages[j] = student_averages[j], student_averages[i]
 
-def  view_general_average():
-    print()
+    print("\nTop 3 students with highest averages:")
+    for i in range(3):
+        student, average = student_averages[i]
+        print(f"{i+1}. {student['name']} - Average: {average:.2f}")
 
+def view_general_average(students):
+    total_average = 0
+    for student in students:
+        student_grades = student['grades'].values()
+        student_average = sum(student_grades) / len(student_grades)
+        total_average += student_average
 
-def  export_csv ():
-    print()
+    if len(students) > 0:
+        general_average = total_average / len(students)
+        print(f"\nThe general average of students is: {general_average:.2f}")
+    else:
+        print("No average")
 
+def export_csv(students):
+    file_path = r'C:\Users\andre\Desktop\lyfter andres\proyectos\students_data.csv'
+    with open(file_path, mode='w', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow(['Name', 'Section', 'Spanish Grade', 'English Grade', 'Social Studies Grade', 'Science Grade'])
+        for student in students:
+            writer.writerow([
+                student['name'],
+                student['section'],
+                student['grades']['spanish'],
+                student['grades']['english'],
+                student['grades']['social_studies'],
+                student['grades']['science']
+            ])
+    print(f"Data exported to '{file_path}'")
 
-def  import_csv ():
-    print()
+def import_csv():
+    file_path = input("Enter the CSV file path or press Enter to use the default path:  ")
+    if not file_path:
+        file_path = r'C:\Users\andre\Desktop\lyfter andres\proyectos\students_data.csv'
+
+    if not os.path.exists(file_path):
+        print(f"No previously exported file found: {file_path}")
+        return []
+
+    students = []
+    with open(file_path, mode='r') as file:
+        reader = csv.reader(file)
+        next(reader)
+        for row in reader:
+            name, section, spanish_grade, english_grade, social_studies_grade, science_grade = row
+            student = {
+                'name': name,
+                'section': section,
+                'grades': {
+                    'spanish': float(spanish_grade),
+                    'english': float(english_grade),
+                    'social_studies': float(social_studies_grade),
+                    'science': float(science_grade)
+                }
+            }
+            students.append(student)
+
+    print(f"Data imported from '{file_path}'")
+    return students
 
 
 def main():
@@ -119,8 +178,8 @@ def main():
     validate_grade()
     view_top_3()
     view_general_average()
-    view_top_3()
     export_csv()
     import_csv ()
 if __name__ == "__main__":
     main()
+
