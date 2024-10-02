@@ -1,0 +1,13 @@
+{
+    "categorias": [
+        "mate"
+    ],
+    "movimientos": [
+        {
+            "tipo": "gasto",
+            "titulo": "lapiz",
+            "monto": 120.0,
+            "categoria": "mate"
+        }
+    ]
+}
